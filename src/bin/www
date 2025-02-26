@@ -1,0 +1,18 @@
+#!/usr/bin/env node
+
+import { port } from '../config/index.ts';
+import app from '../app';
+import db from '../db/models';
+
+async function startServer() {
+    try {
+        await db.sequelize.authenticate();
+        console.log('Database connection success! Sequelize is ready to use...');
+        app.listen(port, () => console.log(`Listening on port ${port}...`));
+    } catch (err) {
+        console.log('Database connection failure.');
+        console.error(err);
+    }
+}
+
+startServer();
