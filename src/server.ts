@@ -5,15 +5,15 @@ import morgan from 'morgan';
 import csurf from 'csurf';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import { environment } from './config';
-import routes from './routes';
+import { NODE_ENV, DB_PORT } from './config/config-module.ts';
+// import routes from './routes';
 import { ValidationError } from 'sequelize';
-
-
 import router from '@routes/routes';
 import logger from '@utils/logger';
-import { DB } from '@database/index';
-import { PORT } from './config';
+
+import { SEQUALIZE_DB } from '@database/sequelize-db.ts';
+
+
 import { errorHandler } from './utils/error-handler';
 import { swaggerSpec, swaggerUi } from './utils/swagger';
 
@@ -21,12 +21,13 @@ import { swaggerSpec, swaggerUi } from './utils/swagger';
 
 // =================VARIABLES START======================//
 
-const isProduction = environment === 'production';
-const isDevelopment = environment === 'development';
-const isTesting = environment === 'testing';
 
-const appServer = express();
-const port = PORT;
+const isProduction = (NODE_ENV === 'production');
+const isDevelopment = (NODE_ENV === 'development');
+const isTesting = (NODE_ENV === 'testing');
+
+const SERVER = express();
+const port = DB_PORT;
 
 const corsOptions = {
     origin: '*',
@@ -38,20 +39,20 @@ const corsOptions = {
 
 
 // morgan and cookieParser
-appServer.use(morgan('dev'));
-appServer.use(cookieParser());
+SERVER.use(morgan('dev'));
+SERVER.use(cookieParser());
 
 
-// Enable CORS if productions
+// Enable CORS if not production
 if (!isProduction) {
-    appServer.use(cors(corsOptions));
-    appServer.options('*', cors(corsOptions));
+    SERVER.use(cors(corsOptions));
+    SERVER.options('*', cors(corsOptions));
 }
 
 
 // helmet and csurf
-appServer.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
-appServer.use(
+SERVER.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
+SERVER.use(
     csurf({
         cookie: {
             secure: isProduction,
@@ -63,21 +64,21 @@ appServer.use(
 
 
 // routes
-appServer.use(routes);
+SERVER.use(routes);
 
 
 // Middleware for parsing JSON and URL-encoded bodies
-appServer.use(express.json());
-appServer.use(express.urlencoded({ extended: true }));
+SERVER.use(express.json());
+SERVER.use(express.urlencoded({ extended: true }));
 
-appServer.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+SERVER.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 
 // Use the router with the /api prefix
-appServer.use('/api', router);
-appServer.use(errorHandler);
+SERVER.use('/api', router);
+SERVER.use(errorHandler);
 
-appServer.all('*', (req, res) => {
+SERVER.all('*', (req, res) => {
     res.status(404).json({ message: 'Sorry! Page not found' });
 });
 
@@ -87,7 +88,7 @@ appServer.all('*', (req, res) => {
 // =================ROUTES START======================//
 
 
-appServer.use((req, res, next) => {
+SERVER.use((req, res, next) => {
     const startTime = Date.now();
 
     res.on('finish', () => {
@@ -111,7 +112,7 @@ appServer.use((req, res, next) => {
 
 
 
-appServer.use((_req, _res, next) => {
+SERVER.use((_req, _res, next) => {
     const err: any = new Error("The requested resource couldn't be found.");
     err.title = "Resource Not Found";
     err.errors = ["The requested resource couldn't be found."];
@@ -119,7 +120,7 @@ appServer.use((_req, _res, next) => {
     next(err);
 });
 
-appServer.use((err: any, _req, _res, next) => {
+SERVER.use((err: any, _req, _res, next) => {
     if (err instanceof ValidationError) {
         err.errors = err.errors.map((e) => e.message);
         err.title = 'Validation error';
@@ -127,11 +128,11 @@ appServer.use((err: any, _req, _res, next) => {
     next(err);
 });
 
-appServer.use((err: any, _req, res, _next) => {
+SERVER.use((err: any, _req, res, _next) => {
     res.status(err.status || 500);
     console.error(err);
     res.json({
-        title: err.title || 'Server Error',
+        title: err.title || 'SERVER Error',
         message: err.message,
         errors: err.errors,
         stack: isProduction ? null : err.stack,
@@ -141,21 +142,4 @@ appServer.use((err: any, _req, res, _next) => {
 
 
 
-// =================SEQUELIZE CONNECT START======================//
-
-
-DB.sequelize
-    .authenticate()
-    .then(() => {
-        logger.info('Database connected successfully!');
-        appServer.listen(port, () => {
-            logger.info(`Server is running on http://localhost:${port}`);
-        });
-    })
-    .catch(error => {
-        logger.error('Unable to connect to the database:', error);
-    });
-
-
-
-export default appServer;
+export default SERVER;

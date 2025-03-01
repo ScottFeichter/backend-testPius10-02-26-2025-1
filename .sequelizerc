@@ -1,8 +1,14 @@
-const path = require('path');
+// This is a config file for sequelize cli
+// It tells sequelize cli the directories for config, models, seeders, and migrations
+
+// The use of path.resolve from the node:path module in this file is to create absolute paths for the configuration and directories used by Sequelize CLI.
+// This ensures that the paths are correctly resolved regardless of the current working directory when running Sequelize commands.
+
+const path = require("path");
 
 module.exports = {
-  config: path.resolve('src/config', 'sequelize-cli.js'),
-  'models-path': path.resolve('src/database', 'models'),
-  'seeders-path': path.resolve('src/database', 'seeders'),
-  'migrations-path': path.resolve('src/database',  'migrations'),
+  config: path.resolve("config", "env-common.js"),
+  "models-path": path.resolve("database", "models"),
+  "seeders-path": path.resolve("database", "seeders"),
+  "migrations-path": path.resolve("database",  "migrations"),
 };

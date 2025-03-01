@@ -1,18 +1,24 @@
 #!/usr/bin/env node
 
-import { port } from '../config/index.ts';
-import app from '../app';
-import db from '../db/models';
+// the shebang tells the os to use node interpreter to run the script
+// it allows the file to be executed directly from command line
 
-async function startServer() {
-    try {
-        await db.sequelize.authenticate();
-        console.log('Database connection success! Sequelize is ready to use...');
-        app.listen(port, () => console.log(`Listening on port ${port}...`));
-    } catch (err) {
-        console.log('Database connection failure.');
-        console.error(err);
-    }
-}
+// This is a node script that is an entry point to start the application
+// It checks the database connection, starts the server, and handles errors
 
-startServer();
+import { DB_PORT } from '../config/config-module.ts';
+import SERVER from '../server.ts';
+import SEQUELIZE from '../database/sequelize.ts';
+
+
+// Check the database connection before starting the server
+SEQUELIZE
+  .authenticate()
+  .then(() => {
+    console.log('Database connection success! Sequelize is ready to use...');
+    server.listen(DB_PORT, () => console.log(`Listening on port ${DB_PORT}...`));
+  })
+  .catch((err) => {
+    console.log('Database connection failure.');
+    console.error(err);
+  });
