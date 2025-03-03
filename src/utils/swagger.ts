@@ -1,4 +1,4 @@
-import { BASE_URL } from '@/config';
+import { BASE_URL } from '../config/env-module.js';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 

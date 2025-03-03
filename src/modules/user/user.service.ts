@@ -1,7 +1,7 @@
 import { repo } from './user.repo';
 import { CustomError } from '@/utils/custom-error';
 import { verifyJWT } from '@/middlewares/jwt.service';
-import { JWT_ACCESS_TOKEN_SECRET } from '@/config';
+import { JWT_ACCESS_TOKEN_SECRET } from '../../config/env-module.js';
 
 export const getUserProfileService = async (accessToken: string) => {
     const decodeToken = await verifyJWT(

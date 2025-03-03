@@ -3,7 +3,7 @@ import { validateSignIn, validateSignUp } from './auth.validator';
 import repo from './auth.repo';
 import { compareSync, hash } from 'bcrypt';
 import { generateJWT } from '@/middlewares/jwt.service';
-import { JWT_ACCESS_TOKEN_SECRET } from '@/config';
+import { JWT_ACCESS_TOKEN_SECRET } from '../../config/env-module.js';
 import { CustomError } from '@/utils/custom-error';
 
 export const signUpService = async (userData: User) => {

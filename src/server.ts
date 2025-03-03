@@ -5,29 +5,31 @@ import morgan from 'morgan';
 import csurf from 'csurf';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import { NODE_ENV, DB_PORT } from './config/config-module.ts';
-// import routes from './routes';
 import { ValidationError } from 'sequelize';
-import router from '@routes/routes';
+
+// import routes from './routes';
+import router from '@routes/routes.js';
 import logger from '@utils/logger';
-
-import { SEQUALIZE_DB } from '@database/sequelize-db.ts';
-
-
 import { errorHandler } from './utils/error-handler';
 import { swaggerSpec, swaggerUi } from './utils/swagger';
+
+
+
+import { NODE_ENV } from './config/env-module.js';
+import SEQUELIZE from '@database/sequelize.js';
+
 
 
 
 // =================VARIABLES START======================//
 
 
-const isProduction = (NODE_ENV === 'production');
-const isDevelopment = (NODE_ENV === 'development');
-const isTesting = (NODE_ENV === 'testing');
+const IS_PRODUCTION = (NODE_ENV === 'production');
+const IS_DEVELOPMENT = (NODE_ENV === 'development');
+const IS_TESTING = (NODE_ENV === 'testing');
 
 const SERVER = express();
-const port = DB_PORT;
+
 
 const corsOptions = {
     origin: '*',
@@ -44,7 +46,7 @@ SERVER.use(cookieParser());
 
 
 // Enable CORS if not production
-if (!isProduction) {
+if (!IS_PRODUCTION) {
     SERVER.use(cors(corsOptions));
     SERVER.options('*', cors(corsOptions));
 }
@@ -55,8 +57,8 @@ SERVER.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 SERVER.use(
     csurf({
         cookie: {
-            secure: isProduction,
-            sameSite: isProduction && "Lax",
+            secure: IS_PRODUCTION,
+            sameSite: IS_PRODUCTION,
             httpOnly: true,
         },
     })
@@ -64,13 +66,12 @@ SERVER.use(
 
 
 // routes
-SERVER.use(routes);
+// SERVER.use(routes);
 
 
 // Middleware for parsing JSON and URL-encoded bodies
 SERVER.use(express.json());
 SERVER.use(express.urlencoded({ extended: true }));
-
 SERVER.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 
@@ -110,8 +111,6 @@ SERVER.use((req, res, next) => {
 
 
 
-
-
 SERVER.use((_req, _res, next) => {
     const err: any = new Error("The requested resource couldn't be found.");
     err.title = "Resource Not Found";
@@ -119,6 +118,7 @@ SERVER.use((_req, _res, next) => {
     err.status = 404;
     next(err);
 });
+
 
 SERVER.use((err: any, _req, _res, next) => {
     if (err instanceof ValidationError) {
@@ -128,6 +128,7 @@ SERVER.use((err: any, _req, _res, next) => {
     next(err);
 });
 
+
 SERVER.use((err: any, _req, res, _next) => {
     res.status(err.status || 500);
     console.error(err);
@@ -135,7 +136,7 @@ SERVER.use((err: any, _req, res, _next) => {
         title: err.title || 'SERVER Error',
         message: err.message,
         errors: err.errors,
-        stack: isProduction ? null : err.stack,
+        stack: IS_PRODUCTION ? null : err.stack,
     });
 });
 

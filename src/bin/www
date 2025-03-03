@@ -1,24 +1,55 @@
 #!/usr/bin/env node
 
-// the shebang tells the os to use node interpreter to run the script
-// it allows the file to be executed directly from command line
+/**
+ * Module dependencies.
+ * This is a node script that serves as an entry point to start the application.
+ * It checks the database connection, starts the server, and handles errors.
+ */
 
-// This is a node script that is an entry point to start the application
-// It checks the database connection, starts the server, and handles errors
+import { DB_PORT } from '../config/env-module.js';
+import SERVER from '../server.js';
+import SEQUELIZE from '../database/sequelize.js';
 
-import { DB_PORT } from '../config/config-module.ts';
-import SERVER from '../server.ts';
-import SEQUELIZE from '../database/sequelize.ts';
-
-
-// Check the database connection before starting the server
-SEQUELIZE
-  .authenticate()
-  .then(() => {
+/**
+ * Initialize HTTP server.
+ * Check database connection before starting the server.
+ */
+const startServer = async (): Promise<void> => {
+  try {
+    await SEQUELIZE.authenticate();
     console.log('Database connection success! Sequelize is ready to use...');
-    server.listen(DB_PORT, () => console.log(`Listening on port ${DB_PORT}...`));
-  })
-  .catch((err) => {
+
+    SERVER.listen(DB_PORT, () => {
+      console.log(`Server running on port ${DB_PORT}...`);
+    }).on('error', (error: Error) => {
+      console.error('Server failed to start:', error);
+      process.exit(1);
+    });
+  } catch (error) {
     console.log('Database connection failure.');
-    console.error(err);
-  });
+    console.error(error);
+    process.exit(1);
+  }
+};
+
+
+/**
+ * Event listener for uncaught exceptions.
+ */
+process.on('uncaughtException', (error: Error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+
+/**
+ * Event listener for unhandled promise rejections.
+ */
+process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
+
+// Start the server
+startServer();

@@ -1,6 +1,6 @@
 import { CustomError } from '@/utils/custom-error';
 import { verifyJWT } from './jwt.service';
-import { JWT_ACCESS_TOKEN_SECRET } from '@/config';
+import { JWT_ACCESS_TOKEN_SECRET } from '../config/env-module.js';
 import { NextFunction, Request, Response } from 'express';
 
 const decodeToken = async (header: string | undefined) => {
